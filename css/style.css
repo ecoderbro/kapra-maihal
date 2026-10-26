@@ -1086,18 +1086,21 @@ footer a {
     }
 }
 
+
 /* =====================================================================
    MOBILE REFINEMENTS (phones & small tablets only; desktop is untouched)
    Smaller text, compact box-style product cards, smooth vertical scroll.
    ===================================================================== */
 
 @media(max-width:760px) {
-
     /* ---- smooth, vertical-only scrolling ---- */
     html {
-        overflow-x: hidden;               /* page can never wobble sideways */
-        overscroll-behavior-x: none;      /* no sideways swipe/bounce */
-        scroll-padding-top: 4.2rem;       /* "Shop now" lands below the sticky header */
+        overflow-x: hidden;
+        /* page can never wobble sideways */
+        overscroll-behavior-x: none;
+        /* no sideways swipe/bounce */
+        scroll-padding-top: 4.2rem;
+        /* "Shop now" lands below the sticky header */
         -webkit-tap-highlight-color: transparent
     }
     body {
@@ -1106,7 +1109,8 @@ footer a {
         max-width: 100%
     }
     .drawer {
-        overscroll-behavior: contain;     /* scrolling the cart doesn't scroll the page behind it */
+        overscroll-behavior: contain;
+        /* scrolling the cart doesn't scroll the page behind it */
         -webkit-overflow-scrolling: touch
     }
     /* category chips wrap instead of sliding left/right */
@@ -1120,7 +1124,6 @@ footer a {
         padding: .3rem .85rem;
         font-size: .85rem
     }
-
     /* ---- hero photo: phones use the tall mobile picture ---- */
     .hero-slides .d {
         display: none
@@ -1129,7 +1132,6 @@ footer a {
         display: block;
         background-image: var(--m)
     }
-
     /* ---- header ---- */
     .bar {
         padding: .5rem 0;
@@ -1150,7 +1152,6 @@ footer a {
     .cart-btn span {
         font-size: .78rem
     }
-
     /* ---- hero ---- */
     .hero {
         padding: 3.2rem 0 3.6rem
@@ -1166,7 +1167,6 @@ footer a {
         padding: .7rem 1.5rem;
         font-size: .92rem
     }
-
     /* ---- search ---- */
     .tools {
         padding: 1.2rem 0 .6rem;
@@ -1174,9 +1174,8 @@ footer a {
     }
     #search {
         padding: .65rem 1rem;
-        font-size: 16px                   /* 16px stops iPhones zooming in when you tap the box */
+        font-size: 16px/* 16px stops iPhones zooming in when you tap the box */
     }
-
     /* ---- product cards: compact "box" tiles ---- */
     .grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1187,7 +1186,7 @@ footer a {
         border-radius: 12px
     }
     .card .ph {
-        aspect-ratio: 1/1                 /* square box instead of tall 3:4 */
+        aspect-ratio: 1/1/* square box instead of tall 3:4 */
     }
     .card .info {
         padding: .5rem .6rem .65rem
@@ -1195,7 +1194,8 @@ footer a {
     .card h3 {
         font-size: .95rem;
         line-height: 1.2;
-        display: -webkit-box;             /* long names stay on max 2 lines */
+        display: -webkit-box;
+        /* long names stay on max 2 lines */
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden
@@ -1210,13 +1210,12 @@ footer a {
         padding: .1rem .55rem
     }
     .skel {
-        aspect-ratio: 1/1.35              /* loading placeholders match the new card size */
+        aspect-ratio: 1/1.35/* loading placeholders match the new card size */
     }
     .status {
         font-size: .9rem;
         padding: .6rem 0
     }
-
     /* ---- product page ---- */
     .back {
         margin-top: 1rem;
@@ -1275,7 +1274,6 @@ footer a {
         font-size: 1.45rem;
         margin: 1.3rem 0 .8rem
     }
-
     /* ---- contact page ---- */
     .contact {
         padding: 1.6rem 0 2.5rem
@@ -1299,7 +1297,6 @@ footer a {
     .ccard p {
         font-size: .92rem
     }
-
     /* ---- cart drawer & checkout ---- */
     .d-head {
         padding: .7rem 1rem
@@ -1335,14 +1332,14 @@ footer a {
     }
     .f input,
     .f textarea {
-        font-size: 16px;                  /* prevents iPhone auto-zoom while typing the order */
+        font-size: 16px;
+        /* prevents iPhone auto-zoom while typing the order */
         padding: .6rem .85rem;
         min-height: 42px
     }
     .ok h3 {
         font-size: 1.5rem
     }
-
     /* ---- footer & toast ---- */
     footer {
         padding: 1.4rem 0;
@@ -1354,7 +1351,9 @@ footer a {
     }
 }
 
+
 /* very small phones */
+
 @media(max-width:340px) {
     .card h3 {
         font-size: .88rem
