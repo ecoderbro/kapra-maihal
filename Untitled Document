@@ -1,0 +1,36 @@
+What the website is
+
+Kapra Maihal is a small online clothing shop. It’s a static site, meaning plain HTML, CSS and JavaScript with no server of your own.
+
+Pages: the home page (index.html) has a sliding photo banner, search, category chips and the product grid. The product page (product.html) has photos, size and colour choice, quantity and “More in…” suggestions. The contact page (contact.html) has phone, WhatsApp and email.
+Products: they come from a Google Sheet through a Google Apps Script link set in config.js. They are cached in the visitor’s browser so the page loads quickly.
+Cart and checkout: a slide-out cart saves in the visitor’s browser. Checkout asks for name, phone, city and address, with cash on delivery. The order is saved to your sheet, and the shop re-checks prices.
+Extras: a WhatsApp message after ordering, a footer with your contact details, and a hidden field that catches spam bots.
+Changes made so far
+
+I made 8 changes in 4 rounds. Only 2 of your files were modified, style.css and home.js.
+
+Round 1: mobile styling (style.css)
+
+Smaller text on phones: base text, headings, nav, buttons and the hero title.
+Compact product cards: 2 columns, tighter gaps, names limited to 2 lines.
+Smooth, vertical-only scrolling: no sideways wobble, chips wrap instead of scrolling, and the cart no longer scrolls the page behind it.
+Smaller spacing and text on the product page, contact page, cart and footer.
+Inputs set to 16px so iPhones don’t zoom in when you tap a field.
+
+Round 2: square photos (style.css)
+
+The main product-page photo and its thumbnails are now 1:1 on mobile. The shop cards were already 1:1.
+
+Round 3: missing hero pictures (style.css)
+
+Your CSS never displayed the banner photos, so I added the missing rules. This was the reason you saw no pictures.
+
+Round 4: separate desktop and mobile photos (home.js and style.css)
+
+Desktop shows only gallery- photos and phones show only mobile- photos. It also switches instantly when you resize the window.
+Files I did not touch
+index.html, product.html and contact.html
+common.js, config.js and product.js
+
+Everything above is inside a max-width: 760px rule, except the desktop hero fix in change 7 and the small rule hiding mobile slides on desktop in change 8. Desktop layout and text sizes are otherwise unchanged.

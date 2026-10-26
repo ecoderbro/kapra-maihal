@@ -13,18 +13,23 @@
         document.title = p.name + " — Kapra Maihal";
         const sel = { size: p.sizes.length === 1 ? p.sizes[0] : "", colour: p.colours.length === 1 ? p.colours[0] : "", qty: 1 };
 
-        // left: big photo + thumbnails
-        const main = el("div", { class: "main" }, img(p.images[0], p.name));
-        const thumbs = el("div", { class: "thumbs" }, p.images.length > 1 ? p.images.map((src, i) =>
-            el("button", {
-                class: i ? "" : "on",
-                "aria-label": "Photo " + (i + 1),
-                onclick: (ev) => {
-                    main.replaceChildren(img(src, p.name));
-                    thumbs.querySelectorAll("button").forEach((b) => b.classList.remove("on"));
-                    ev.currentTarget.classList.add("on");
-                }
-            }, img(src, ""))) : []);
+        // left: big photo + thumbnails (they change when a colour is picked)
+        const main = el("div", { class: "main" });
+        const thumbs = el("div", { class: "thumbs" });
+        function setPhotos(list) {
+            main.replaceChildren(img(list[0], p.name));
+            thumbs.replaceChildren(...(list.length > 1 ? list.map((src, i) =>
+                el("button", {
+                    class: i ? "" : "on",
+                    "aria-label": "Photo " + (i + 1),
+                    onclick: (ev) => {
+                        main.replaceChildren(img(src, p.name));
+                        thumbs.querySelectorAll("button").forEach((b) => b.classList.remove("on"));
+                        ev.currentTarget.classList.add("on");
+                    }
+                }, img(src, ""))) : []));
+        }
+        setPhotos(K.photosFor(p, sel.colour)); // single-colour products show that colour's photos straight away
 
         // right: options
         function group(label, values, key) {
@@ -36,6 +41,7 @@
                     class: "opt" + (sel[key] === v ? " on" : ""),
                     onclick: (ev) => {
                         sel[key] = v;
+                        if (key === "colour") setPhotos(K.photosFor(p, v)); // show this colour's photos
                         err.textContent = "";
                         row.querySelectorAll(".opt").forEach((b) => b.classList.remove("on"));
                         ev.currentTarget.classList.add("on");

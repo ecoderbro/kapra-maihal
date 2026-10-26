@@ -45,6 +45,16 @@
     K.settings = { deliveryFee: 0 };
     K.find = (id) => K.products.find((p) => p.id === id);
 
+    // photos to show for a product in a chosen colour (max 4). Colour names ignore capitals and extra spaces.
+    // No colour chosen, or no photos added for that colour -> the product's normal photos.
+    K.photosFor = (p, colour) => {
+        const norm = (s) => String(s == null ? "" : s).trim().toLowerCase();
+        const map = p.colourImages || {};
+        const key = colour ? Object.keys(map).find((k) => norm(k) === norm(colour)) : null;
+        const list = key ? (map[key] || []).filter(Boolean).slice(0, 4) : [];
+        return list.length ? list : (p.images || []);
+    };
+
     // ---------- products (read from Google Sheets) ----------
     // Fast path: products from the last visit show INSTANTLY, then fresh ones are fetched in the background.
     const CACHE_KEY = "km_products_v1";
@@ -150,7 +160,7 @@
                 K.renderBadge();
                 renderCart();
             };
-            return el("div", { class: "line" }, K.img(p.images[0], p.name),
+            return el("div", { class: "line" }, K.img(K.photosFor(p, l.colour)[0], p.name),
                 el("div", {}, el("strong", {}, p.name), el("small", {}, [l.size, l.colour].filter(Boolean).join(" · ")),
                     el("div", { class: "qty" }, el("button", { onclick: () => change(-1) }, "−"), el("span", {}, String(l.qty)), el("button", { onclick: () => change(1) }, "+")),
                     el("button", {
