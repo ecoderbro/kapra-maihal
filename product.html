@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kapra Maihal — Product</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="top">
+        <div class="wrap bar">
+            <a class="brand" href="index.html">Kapra Maihal</a>
+            <nav class="nav"><a class="on" href="index.html#shop">Shop</a><a class="" href="contact.html">Contact</a><button class="cart-btn" id="openCart" aria-label="Open cart">Cart <span id="cartCount">0</span></button></nav>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <a class="back" href="index.html#shop">← Back to shop</a>
+        <p id="pStatus" class="status">Loading…</p>
+        <div class="pwrap" id="product"></div>
+        <section class="related" id="related" hidden>
+            <h2 id="relTitle">More like this</h2>
+            <div class="grid" id="relGrid"></div>
+        </section>
+    </main>
+
+    <!-- Cart + checkout drawer -->
+    <div class="overlay" id="overlay" hidden></div>
+    <aside class="drawer" id="drawer" hidden aria-label="Your cart">
+        <div class="d-head">
+            <h2>Your cart</h2><button class="close" id="closeCart" aria-label="Close cart">×</button></div>
+        <div class="d-body" id="drawerBody"></div>
+    </aside>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/product.js"></script>
+</body>
+
+</html>

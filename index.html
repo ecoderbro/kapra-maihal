@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kapra Maihal — Clothing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="top">
+        <div class="wrap bar">
+            <a class="brand" href="index.html">Kapra Maihal</a>
+            <nav class="nav"><a class="on" href="index.html#shop">Shop</a><a class="" href="contact.html">Contact</a><button class="cart-btn" id="openCart" aria-label="Open cart">Cart <span id="cartCount">0</span></button></nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-slides" id="heroSlides"></div>
+        <div class="wrap">
+            <h1>Kapra Maihal</h1>
+            <p>Shop our latest clothing collection.</p>
+            <a class="btn" href="#shop">Shop now</a>
+        </div>
+    </section>
+
+    <main class="wrap" id="shop">
+        <div class="tools">
+            <input type="search" id="search" placeholder="Search clothes…" aria-label="Search products">
+            <div class="chips" id="chips"></div>
+        </div>
+        <p id="status" class="status">Loading products…</p>
+        <div class="grid" id="grid"></div>
+    </main>
+    <footer>
+        <div class="wrap" id="footInfo"><strong>Kapra Maihal</strong></div>
+    </footer>
+
+    <!-- Cart + checkout drawer -->
+    <div class="overlay" id="overlay" hidden></div>
+    <aside class="drawer" id="drawer" hidden aria-label="Your cart">
+        <div class="d-head">
+            <h2>Your cart</h2><button class="close" id="closeCart" aria-label="Close cart">×</button></div>
+        <div class="d-body" id="drawerBody"></div>
+    </aside>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/home.js"></script>
+</body>
+
+</html>
