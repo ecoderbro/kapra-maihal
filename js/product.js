@@ -78,13 +78,28 @@
             }
         }, soldOut ? "Sold out" : "Add to cart");
 
+        // description: on phones a long one is shrunk to a few lines with a Read more / Show less button
+        const descText = p.description || "";
+        const longDesc = descText.length > 120;
+        const descEl = el("p", { class: "desc" + (longDesc ? " clamp" : "") }, descText);
+        const descMore = longDesc ? el("button", {
+            type: "button",
+            class: "more",
+            "aria-expanded": "false",
+            onclick: (ev) => {
+                const open = descEl.classList.toggle("open");
+                ev.currentTarget.textContent = open ? "Show less" : "Read more";
+                ev.currentTarget.setAttribute("aria-expanded", String(open));
+            }
+        }, "Read more") : null;
+
         $("product").replaceChildren(
             el("div", { class: "gal" }, main, thumbs),
             el("div", { class: "det" },
                 p.category ? el("span", { class: "cat" }, p.category) : null,
                 el("h1", {}, p.name),
                 el("div", { class: "price big" }, money(price(p)), p.salePrice > 0 ? el("s", {}, money(p.price)) : null),
-                el("p", { class: "desc" }, p.description || ""),
+                descEl, descMore,
                 gSize, gColour,
                 el("h4", {}, "Quantity"),
                 el("div", { class: "qty" }, el("button", { type: "button", onclick: () => setQty(-1) }, "−"), qtyNum, el("button", { type: "button", onclick: () => setQty(1) }, "+")),
