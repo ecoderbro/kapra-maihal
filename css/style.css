@@ -1113,16 +1113,30 @@ footer a {
         overscroll-behavior: contain;     /* scrolling the cart doesn't scroll the page behind it */
         -webkit-overflow-scrolling: touch
     }
-    /* category chips wrap instead of sliding left/right */
+    /* category chips: ONE row that swipes sideways inside its own strip (the page itself never moves sideways) */
     .chips {
-        flex-wrap: wrap;
-        overflow-x: visible;
-        gap: .4rem
+        position: relative;               /* lets the script centre the chosen chip */
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: .45rem;
+        margin-inline: -4vw;              /* strip runs edge to edge, so the next chip peeks in as a hint */
+        padding: .2rem 4vw .5rem;
+        scroll-padding-inline: 4vw;
+        scroll-snap-type: x proximity;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none
+    }
+    .chips::-webkit-scrollbar {
+        display: none
     }
     .chip {
-        min-height: 34px;
-        padding: .3rem .85rem;
-        font-size: .85rem
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        min-height: 36px;
+        padding: .3rem .95rem;
+        font-size: .88rem
     }
 
     /* ---- hero photo: phones use the tall mobile picture ---- */

@@ -64,17 +64,24 @@
     let cat = "All",
         query = "";
 
-    function renderChips() {
+    function renderChips(centerActive) {
+        const box = $("chips");
+        const kept = box.scrollLeft; // redrawing the buttons must not throw the strip back to the start
         const cats = ["All"].concat([...new Set(K.products.map((p) => p.category).filter(Boolean))]);
-        $("chips").replaceChildren(...cats.map((c) =>
+        box.replaceChildren(...cats.map((c) =>
             el("button", {
                 class: "chip" + (c === cat ? " on" : ""),
                 onclick: () => {
                     cat = c;
-                    renderChips();
+                    renderChips(true);
                     renderGrid();
                 }
             }, c)));
+        box.scrollLeft = kept;
+        if (centerActive) { // after a tap, glide the chosen category to the middle of the strip (sideways only, the page never jumps)
+            const on = box.querySelector(".chip.on");
+            if (on) box.scrollTo({ left: on.offsetLeft - (box.clientWidth - on.offsetWidth) / 2, behavior: "smooth" });
+        }
     }
 
     function renderGrid() {
