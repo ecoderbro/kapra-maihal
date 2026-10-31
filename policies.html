@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Policies — ZARÉEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="top">
+        <div class="wrap bar">
+            <a class="brand" href="index.html" data-shop="NAME">ZARÉEN</a>
+            <nav class="nav"><a class="" href="index.html#shop">Shop</a><a class="" href="contact.html">Contact</a><button class="cart-btn" id="openCart" aria-label="Open cart">Cart <span id="cartCount">0</span></button></nav>
+        </div>
+    </header>
+
+    <main class="wrap policy">
+        <h1>Our policies</h1>
+        <p class="lead">Please read these before you order. If anything is unclear, message us on WhatsApp and we will gladly help.</p>
+        <nav class="pnav" aria-label="Policy sections">
+            <a href="#payment">Payment</a><a href="#delivery">Delivery</a><a href="#returns">Returns &amp; replacement</a><a href="#contact">Contact</a>
+        </nav>
+
+        <section class="pcard" id="payment">
+            <h2>Payment</h2>
+            <p>We accept <strong>cash on delivery</strong> only. You pay when your order arrives. There are no online payments.</p>
+        </section>
+
+        <section class="pcard" id="delivery">
+            <h2>Delivery</h2>
+            <p>A flat delivery fee is added to every order. You can see it in your cart and at checkout before you place your order.</p>
+            <p>After you order, we will contact you to confirm your order and delivery details.</p>
+        </section>
+
+        <section class="pcard" id="returns">
+            <h2>Returns &amp; replacement</h2>
+            <p><strong>No refund</strong> is given for a product that is not damaged.</p>
+            <p>A product that is not damaged can be <strong>replaced with a different one</strong>. Message us on WhatsApp and we will arrange the replacement with you.</p>
+            <p>If your product arrives <strong>damaged</strong>, please message us on WhatsApp with photos as soon as you receive it, so we can arrange a refund or a replacement.</p>
+        </section>
+
+        <section class="pcard" id="contact">
+            <h2>Contact</h2>
+            <p>WhatsApp / phone: <a data-link="wa" data-shop="PHONE" href="https://wa.me/923058946649" target="_blank" rel="noopener">+92 305 8946649</a></p>
+            <p>Email: <a data-link="mail" data-shop="EMAIL" href="mailto:atzareen@gmail.com">atzareen@gmail.com</a></p>
+            <p>Location: <span data-shop="ADDRESS">Jadoon Plaza, Phase 2, Mandia, Atd</span></p>
+        </section>
+    </main>
+    <footer>
+        <div class="wrap" id="footInfo"><strong class="fb">ZARÉEN</strong></div>
+    </footer>
+
+    <!-- Cart drawer -->
+    <div class="overlay" id="overlay" hidden></div>
+    <aside class="drawer" id="drawer" hidden aria-label="Your cart">
+        <div class="d-head">
+            <h2>Your cart</h2><button class="close" id="closeCart" aria-label="Close cart">×</button></div>
+        <div class="d-body" id="drawerBody"></div>
+    </aside>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/common.js"></script>
+</body>
+
+</html>

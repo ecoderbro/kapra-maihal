@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Contact — Kapra Maihal</title>
+    <title>Contact — ZARÉEN</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <body>
     <header class="top">
         <div class="wrap bar">
-            <a class="brand" href="index.html">Kapra Maihal</a>
+            <a class="brand" href="index.html" data-shop="NAME">ZARÉEN</a>
             <nav class="nav"><a class="" href="index.html#shop">Shop</a><a class="on" href="contact.html">Contact</a><button class="cart-btn" id="openCart" aria-label="Open cart">Cart <span id="cartCount">0</span></button></nav>
         </div>
     </header>
@@ -25,20 +25,26 @@
         <div class="cgrid">
             <div class="ccard">
                 <h3>Phone</h3>
-                <p>0300 6169492</p>
-                <a class="btn solid outline" href="tel:+923006169492">Call us</a></div>
+                <p data-shop="PHONE">+92 305 8946649</p>
+                <a class="btn solid outline" data-link="tel" href="tel:+923058946649">Call us</a></div>
             <div class="ccard">
                 <h3>WhatsApp</h3>
-                <p>0300 6169492</p>
-                <a class="btn solid" href="https://wa.me/923006169492?text=Hello%20Kapra%20Maihal%2C%20I%20have%20a%20question." target="_blank" rel="noopener">Chat on WhatsApp</a></div>
+                <p data-shop="PHONE">+92 305 8946649</p>
+                <a class="btn solid" data-link="wa" href="https://wa.me/923058946649" target="_blank" rel="noopener">Chat on WhatsApp</a></div>
             <div class="ccard">
                 <h3>Email</h3>
-                <p>ehaababdullah7@gmail.com</p>
-                <a class="btn solid outline" href="mailto:ehaababdullah7@gmail.com">Send an email</a></div>
+                <p data-shop="EMAIL">atzareen@gmail.com</p>
+                <a class="btn solid outline" data-link="mail" href="mailto:atzareen@gmail.com">Send an email</a></div>
+            <div class="ccard">
+                <h3>Location</h3>
+                <p data-shop="ADDRESS">Jadoon Plaza, Phase 2, Mandia, Atd</p></div>
         </div>
     </main>
+    <footer>
+        <div class="wrap" id="footInfo"><strong class="fb">ZARÉEN</strong></div>
+    </footer>
 
-    <!-- Cart + checkout drawer -->
+    <!-- Cart drawer -->
     <div class="overlay" id="overlay" hidden></div>
     <aside class="drawer" id="drawer" hidden aria-label="Your cart">
         <div class="d-head">
@@ -49,7 +55,6 @@
 
     <script src="js/config.js"></script>
     <script src="js/common.js"></script>
-
 </body>
 
 </html>

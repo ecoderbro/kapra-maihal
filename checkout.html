@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Checkout — ZARÉEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="top">
+        <div class="wrap bar">
+            <a class="brand" href="index.html" data-shop="NAME">ZARÉEN</a>
+            <nav class="nav"><a class="" href="index.html#shop">Shop</a><a class="" href="contact.html">Contact</a><button class="cart-btn" id="openCart" aria-label="Open cart">Cart <span id="cartCount">0</span></button></nav>
+        </div>
+    </header>
+
+    <main class="wrap checkout">
+        <a class="back" href="index.html#shop">← Continue shopping</a>
+        <h1>Checkout</h1>
+        <p id="coStatus" class="status">Loading…</p>
+        <div id="co"></div>
+    </main>
+    <footer>
+        <div class="wrap" id="footInfo"><strong class="fb">ZARÉEN</strong></div>
+    </footer>
+
+    <!-- Cart drawer -->
+    <div class="overlay" id="overlay" hidden></div>
+    <aside class="drawer" id="drawer" hidden aria-label="Your cart">
+        <div class="d-head">
+            <h2>Your cart</h2><button class="close" id="closeCart" aria-label="Close cart">×</button></div>
+        <div class="d-body" id="drawerBody"></div>
+    </aside>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/checkout.js"></script>
+</body>
+
+</html>

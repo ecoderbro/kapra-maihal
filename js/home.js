@@ -60,9 +60,11 @@
         }, (C.SLIDE_SECONDS || 4) * 1000);
     });
 
-    // ----- product grid -----
+    // ----- product grid: search + category + sort + filters -----
     let cat = "All",
         query = "";
+    const f = { sort: "featured", min: null, max: null, sale: false, stock: false };
+    const price = K.price;
 
     function renderChips(centerActive) {
         const box = $("chips");
@@ -84,14 +86,70 @@
         }
     }
 
-    function renderGrid() {
-        const list = K.products.filter((p) => (cat === "All" || p.category === cat) && p.name.toLowerCase().includes(query));
-        $("grid").replaceChildren(...list.map((p, i) => K.card(p, i)));
-        $("status").textContent = !K.products.length ? "No products yet. Please check back soon." :
-            (!list.length ? "Nothing matches your search." : "");
+    const num = (v) => { v = String(v).trim(); if (v === "") return null; const n = Number(v); return isFinite(n) && n >= 0 ? n : null; };
+    const filterCount = () => (f.min != null || f.max != null ? 1 : 0) + (f.sale ? 1 : 0) + (f.stock ? 1 : 0);
+
+    function visible() {
+        let lo = f.min,
+            hi = f.max;
+        if (lo != null && hi != null && lo > hi) { const t = lo;
+            lo = hi;
+            hi = t; } // typed the wrong way round: still works
+        let list = K.products.filter((p) =>
+            (cat === "All" || p.category === cat) && p.name.toLowerCase().includes(query) &&
+            (lo == null || price(p) >= lo) && (hi == null || price(p) <= hi) &&
+            (!f.sale || p.salePrice > 0) && (!f.stock || p.stock > 0));
+        if (f.sort === "low") list = list.slice().sort((a, b) => price(a) - price(b));
+        else if (f.sort === "high") list = list.slice().sort((a, b) => price(b) - price(a));
+        else if (f.sort === "az") list = list.slice().sort((a, b) => a.name.localeCompare(b.name));
+        else if (f.sort === "new") list = list.slice().reverse(); // newest = the last rows in your Products sheet
+        return list;
     }
+
+    function renderGrid() {
+        const list = visible();
+        $("grid").replaceChildren(...list.map((p, i) => K.card(p, i)));
+        const n = filterCount();
+        $("filterBtn").textContent = n ? "Filters (" + n + ")" : "Filters";
+        $("filterBtn").classList.toggle("on", n > 0);
+        $("count").textContent = K.products.length ? list.length + (list.length === 1 ? " item" : " items") : "";
+        $("status").textContent = !K.products.length ? "No products yet. Please check back soon." :
+            (!list.length ? (n || query ? "Nothing matches your search or filters." : "Nothing here yet.") : "");
+    }
+
+    function priceHints() { // show the lowest and highest price in the empty boxes
+        const prices = K.products.map(price).filter((x) => x > 0);
+        if (!prices.length) return;
+        $("pMin").placeholder = String(Math.min(...prices));
+        $("pMax").placeholder = String(Math.max(...prices));
+    }
+
     $("search").addEventListener("input", (e) => {
         query = e.target.value.trim().toLowerCase();
+        renderGrid();
+    });
+    $("sort").addEventListener("change", (e) => { f.sort = e.target.value;
+        renderGrid(); });
+    $("filterBtn").addEventListener("click", () => {
+        const box = $("filters");
+        box.hidden = !box.hidden;
+        $("filterBtn").setAttribute("aria-expanded", String(!box.hidden));
+    });
+    $("pMin").addEventListener("input", (e) => { f.min = num(e.target.value);
+        renderGrid(); });
+    $("pMax").addEventListener("input", (e) => { f.max = num(e.target.value);
+        renderGrid(); });
+    $("fSale").addEventListener("change", (e) => { f.sale = e.target.checked;
+        renderGrid(); });
+    $("fStock").addEventListener("change", (e) => { f.stock = e.target.checked;
+        renderGrid(); });
+    $("fClear").addEventListener("click", () => {
+        f.min = f.max = null;
+        f.sale = f.stock = false;
+        $("pMin").value = "";
+        $("pMax").value = "";
+        $("fSale").checked = false;
+        $("fStock").checked = false;
         renderGrid();
     });
 
@@ -99,10 +157,12 @@
     $("grid").replaceChildren(...[0, 1, 2, 3].map(() => el("div", { class: "skel" })));
     K.onFresh = () => {
         renderChips();
+        priceHints();
         renderGrid();
     }; // newer data arrived: redraw
     K.loadProducts().then(() => {
             renderChips();
+            priceHints();
             renderGrid();
         })
         .catch((err) => {

@@ -1,4 +1,4 @@
-// ===== Shared by every page: helpers, products, cart, checkout =====
+// ===== Shared by every page: helpers, products, cart, floating WhatsApp, popups, footer =====
 (function() {
     const C = window.SHOP,
         $ = (id) => document.getElementById(id);
@@ -29,6 +29,21 @@
         onerror: (ev) => { ev.target.style.visibility = "hidden"; }
     });
 
+    // ---------- contact links (all built from js/config.js, so you change a number in ONE place) ----------
+    const digits = (s) => String(s || "").replace(/\D/g, "");
+    K.tel = () => "tel:+" + (digits(C.WHATSAPP) || digits(C.PHONE));
+    K.wa = (msg) => "https://wa.me/" + digits(C.WHATSAPP) + (msg ? "?text=" + encodeURIComponent(msg) : "");
+    K.hello = "Hello " + C.NAME + ", I have a question.";
+    // any element with data-shop="PHONE" (or EMAIL, ADDRESS, NAME, TAGLINE) shows that setting;
+    // any link with data-link="tel" / "mail" / "wa" points to the right place
+    document.querySelectorAll("[data-shop]").forEach((n) => { const v = C[n.dataset.shop]; if (v) n.textContent = v; });
+    document.querySelectorAll("[data-link]").forEach((n) => {
+        const t = n.dataset.link;
+        if (t === "tel") n.href = K.tel();
+        else if (t === "mail" && C.EMAIL) n.href = "mailto:" + C.EMAIL;
+        else if (t === "wa" && C.WHATSAPP) n.href = K.wa(n.dataset.msg || K.hello);
+    });
+
     // ---------- cart (saved in the browser) ----------
     const cart = (K.cart = []);
     try { cart.push(...JSON.parse(localStorage.getItem("km_cart") || "[]")); } catch (e) {}
@@ -44,6 +59,7 @@
     K.products = [];
     K.settings = { deliveryFee: 0 };
     K.find = (id) => K.products.find((p) => p.id === id);
+    K.onCartChange = null; // the checkout page sets this so its summary stays in step with the cart drawer
 
     // photos to show for a product in a chosen colour (max 4). Colour names ignore capitals and extra spaces.
     // No colour chosen, or no photos added for that colour -> the product's normal photos.
@@ -118,7 +134,124 @@
         }
     };
 
-    // ---------- cart drawer + checkout ----------
+    // ---------- popup window (used by the size guide) ----------
+    function lockScroll() {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev; };
+    }
+    K.modal = function(title, content) {
+        const prevFocus = document.activeElement;
+        const unlock = lockScroll();
+        const close = () => {
+            back.remove();
+            document.removeEventListener("keydown", onKey);
+            unlock();
+            if (prevFocus && prevFocus.focus) prevFocus.focus();
+        };
+        const onKey = (e) => { if (e.key === "Escape") close(); };
+        const closeBtn = el("button", { type: "button", class: "mdl-x", "aria-label": "Close", onclick: close }, "×");
+        const back = el("div", { class: "mdl-back", onclick: (e) => { if (e.target === back) close(); } },
+            el("div", { class: "mdl", role: "dialog", "aria-modal": "true", "aria-label": title },
+                el("div", { class: "mdl-head" }, el("h3", {}, title), closeBtn),
+                el("div", { class: "mdl-body" }, content)));
+        document.addEventListener("keydown", onKey);
+        document.body.appendChild(back);
+        closeBtn.focus();
+        return close;
+    };
+
+    // ---------- size guide ----------
+    K.sizeGuide = function() {
+        const g = C.SIZE_GUIDE || {};
+        const box = el("div", { class: "sg" });
+        const table = () => el("div", { class: "tbl" }, el("table", {},
+            el("thead", {}, el("tr", {}, (g.columns || []).map((c) => el("th", {}, c)))),
+            el("tbody", {}, (g.rows || []).map((r) => el("tr", {}, r.map((c, j) => el(j ? "td" : "th", j ? {} : { scope: "row" }, c)))))));
+        const showTable = () => {
+            const parts = [table()];
+            if (g.note) parts.push(el("p", { class: "note" }, g.note));
+            box.replaceChildren(...parts);
+        };
+        if (g.image) {
+            box.replaceChildren(
+                el("img", { src: g.image, alt: "Size guide chart", class: "sg-img", onclick: () => K.zoom([g.image], 0), onerror: showTable }),
+                el("p", { class: "note" }, "Tap the chart to zoom."));
+        } else showTable();
+        K.modal("Size guide", box);
+    };
+
+    // ---------- tap-to-zoom photo viewer ----------
+    // K.zoom(listOfPhotos, startIndex, onChange): full-screen photo. Tap the photo to zoom in, tap again to zoom out.
+    // When zoomed in, drag / scroll to look around. Arrows or a swipe move to the next photo.
+    K.zoom = function(list, start, onChange) {
+        list = (list || []).filter(Boolean);
+        if (!list.length) return;
+        let i = Math.min(Math.max(start || 0, 0), list.length - 1),
+            zoomed = false,
+            x0 = null;
+        const unlock = lockScroll();
+        const pic = el("img", { alt: "", draggable: "false" });
+        const view = el("div", { class: "zv" }, pic);
+        const count = el("span", { class: "zc" });
+        const prev = el("button", { type: "button", class: "zn zp", "aria-label": "Previous photo", onclick: () => go(-1) }, "‹");
+        const next = el("button", { type: "button", class: "zn zq", "aria-label": "Next photo", onclick: () => go(1) }, "›");
+        const x = el("button", { type: "button", class: "zclose", "aria-label": "Close", onclick: () => close() }, "×");
+        const box = el("div", { class: "zoom", role: "dialog", "aria-modal": "true", "aria-label": "Photo viewer" }, view, x, list.length > 1 ? [prev, next, count] : null);
+
+        function show() {
+            zoomed = false;
+            pic.classList.remove("z");
+            view.classList.remove("zoomed");
+            view.scrollLeft = 0;
+            view.scrollTop = 0;
+            pic.src = list[i];
+            count.textContent = (i + 1) + " / " + list.length;
+        }
+
+        function go(d) {
+            i = (i + d + list.length) % list.length;
+            show();
+            if (onChange) onChange(i);
+        }
+
+        function close() {
+            window.removeEventListener("keydown", onKey, true);
+            box.remove();
+            unlock();
+        }
+
+        function onKey(e) {
+            if (e.key === "Escape") { e.stopImmediatePropagation(); close(); } else if (e.key === "ArrowLeft" && list.length > 1) go(-1);
+            else if (e.key === "ArrowRight" && list.length > 1) go(1);
+        }
+        pic.addEventListener("click", (e) => {
+            const r = pic.getBoundingClientRect();
+            const fx = (e.clientX - r.left) / r.width,
+                fy = (e.clientY - r.top) / r.height;
+            zoomed = !zoomed;
+            pic.classList.toggle("z", zoomed);
+            view.classList.toggle("zoomed", zoomed);
+            if (zoomed) { // zoom in where the finger / mouse touched
+                view.scrollLeft = fx * pic.offsetWidth - view.clientWidth / 2;
+                view.scrollTop = fy * pic.offsetHeight - view.clientHeight / 2;
+            }
+        });
+        view.addEventListener("click", (e) => { if (e.target === view && !zoomed) close(); }); // tap the dark area to close
+        view.addEventListener("touchstart", (e) => { x0 = !zoomed && e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+        view.addEventListener("touchend", (e) => {
+            if (x0 == null || list.length < 2) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            x0 = null;
+            if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1);
+        }, { passive: true });
+        window.addEventListener("keydown", onKey, true);
+        document.body.appendChild(box);
+        show();
+        x.focus();
+    };
+
+    // ---------- cart drawer ----------
     function showOverlay(show) {
         $("overlay").hidden = !show;
         document.body.style.overflow = show ? "hidden" : "";
@@ -143,22 +276,28 @@
         } catch (err) { $("drawerBody").replaceChildren(el("p", { class: "banner" }, err.message)); }
     });
 
-    function totals() {
-        const sub = cart.reduce((n, l) => n + price(K.find(l.id)) * l.qty, 0);
+    K.totals = function() {
+        const sub = cart.reduce((n, l) => { const p = K.find(l.id); return p ? n + price(p) * l.qty : n; }, 0);
         const fee = cart.length ? K.settings.deliveryFee || 0 : 0;
         return { sub, fee, total: sub + fee };
+    };
+
+    function changed() {
+        K.saveCart();
+        K.renderBadge();
+        renderCart();
+        if (K.onCartChange) K.onCartChange();
     }
 
     function renderCart() {
-        if (!cart.length) { $("drawerBody").replaceChildren(el("p", { class: "note" }, "Your cart is empty.")); return; }
-        const t = totals();
-        const lines = cart.map((l, i) => {
+        const mine = cart.filter((l) => K.find(l.id));
+        if (!mine.length) { $("drawerBody").replaceChildren(el("p", { class: "note" }, "Your cart is empty.")); return; }
+        const t = K.totals();
+        const lines = mine.map((l) => {
             const p = K.find(l.id);
             const change = (d) => {
                 l.qty = Math.min(C.MAX_QTY, Math.max(1, l.qty + d));
-                K.saveCart();
-                K.renderBadge();
-                renderCart();
+                changed();
             };
             return el("div", { class: "line" }, K.img(K.photosFor(p, l.colour)[0], p.name),
                 el("div", {}, el("strong", {}, p.name), el("small", {}, [l.size, l.colour].filter(Boolean).join(" · ")),
@@ -166,119 +305,46 @@
                     el("button", {
                         class: "rm",
                         onclick: () => {
-                            cart.splice(i, 1);
-                            K.saveCart();
-                            K.renderBadge();
-                            renderCart();
+                            cart.splice(cart.indexOf(l), 1);
+                            changed();
                         }
                     }, "Remove")),
                 el("div", { class: "price" }, money(price(p) * l.qty)));
         });
-        const field = (id, label, type, extra) => el("div", { class: "f" }, el("label", { for: id }, label),
-            type === "area" ? el("textarea", Object.assign({ id, rows: "2" }, extra || {})) : el("input", Object.assign({ id, type }, extra || {})),
-            el("span", { class: "err", id: "e-" + id }));
         $("drawerBody").replaceChildren(...lines,
             el("div", { class: "sum" },
                 el("div", {}, el("span", {}, "Subtotal"), el("span", {}, money(t.sub))),
                 t.fee ? el("div", {}, el("span", {}, "Delivery"), el("span", {}, money(t.fee))) : null,
                 el("div", { class: "tot" }, el("span", {}, "Total"), el("span", {}, money(t.total)))),
-            el("p", { class: "note" }, "Payment: cash on delivery. Prices are re-checked when you place the order."),
-            el("div", { id: "banner", class: "banner", hidden: "hidden", role: "alert" }),
-            el("form", { id: "co", novalidate: "novalidate", onsubmit: submit },
-                field("cName", "Full name *", "text", { autocomplete: "name", maxlength: "100" }),
-                field("cPhone", "Phone number *", "tel", { autocomplete: "tel", placeholder: "03xx xxxxxxx" }),
-                field("cEmail", "Email (optional)", "email", { autocomplete: "email" }),
-                field("cCity", "City *", "text", { autocomplete: "address-level2" }),
-                field("cAddr", "Full delivery address *", "area", { autocomplete: "street-address", maxlength: "300" }),
-                field("cNote", "Order note (optional)", "area", { maxlength: "500" }),
-                el("div", { style: "position:absolute;left:-9999px", "aria-hidden": "true" }, el("input", { id: "cWeb", tabindex: "-1", autocomplete: "off" })),
-                el("button", { class: "btn solid", id: "placeBtn", type: "submit" }, "PLACE ORDER")));
-    }
-
-    function setErr(id, msg) {
-        $(id).classList.toggle("bad", !!msg);
-        $("e-" + id).textContent = msg || "";
-        return !msg;
-    }
-
-    function validate() {
-        let ok = true;
-        const v = (id) => $(id).value.trim();
-        ok = setErr("cName", v("cName").length >= 2 ? "" : "Please enter your full name.") && ok;
-        ok = setErr("cPhone", /^\+?[0-9 ()\-]{7,20}$/.test(v("cPhone")) ? "" : "Enter a valid phone number.") && ok;
-        ok = setErr("cEmail", !v("cEmail") || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v("cEmail")) ? "" : "Enter a valid email or leave it empty.") && ok;
-        ok = setErr("cCity", v("cCity").length >= 2 ? "" : "Please enter your city.") && ok;
-        ok = setErr("cAddr", v("cAddr").length >= 8 ? "" : "Please enter your full address.") && ok;
-        return ok;
-    }
-
-    function banner(msg) {
-        const b = $("banner");
-        b.textContent = msg;
-        b.hidden = !msg;
-        if (msg) b.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    async function submit(ev) {
-        ev.preventDefault();
-        banner("");
-        if ($("cWeb").value) return; // honeypot
-        if (!validate()) { // slide to the first wrong field
-            const first = $("co").querySelector(".bad");
-            if (first) {
-                first.scrollIntoView({ behavior: "smooth", block: "center" });
-                first.focus({ preventScroll: true });
-            }
-            return;
-        }
-        const btn = $("placeBtn");
-        btn.disabled = true;
-        btn.textContent = "SENDING…";
-        const v = (id) => $(id).value.trim();
-        const body = {
-            name: v("cName"),
-            phone: v("cPhone"),
-            email: v("cEmail"),
-            city: v("cCity"),
-            address: v("cAddr"),
-            note: v("cNote"),
-            items: cart.map((l) => ({ id: l.id, size: l.size, colour: l.colour, qty: l.qty }))
-        }; // no prices are sent
-        try {
-            const res = await fetch(C.APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
-            const out = await res.json();
-            if (!out.ok) throw new Error(out.error || "Could not save your order.");
-            cart.length = 0;
-            K.saveCart();
-            K.renderBadge(); // success only after the sheet confirmed it
-            const wa = C.WHATSAPP ? el("a", {
+            el("p", { class: "note" }, "Payment: cash on delivery. Prices are re-checked when you place the order. ", el("a", { href: "policies.html" }, "Delivery & return policies")),
+            el("a", {
                 class: "btn solid",
-                style: "margin-top:1rem",
-                target: "_blank",
-                rel: "noopener",
-                href: "https://wa.me/" + C.WHATSAPP + "?text=" + encodeURIComponent("Hello Kapra Maihal, I placed order " + out.id + ".")
-            }, "Message us on WhatsApp") : null;
-            $("drawerBody").replaceChildren(el("div", { class: "ok" }, el("h3", {}, "Order received"),
-                el("p", {}, "Your order number is "), el("strong", {}, out.id),
-                el("p", { style: "margin-top:.6rem" }, "Total to pay on delivery: " + money(out.total) + ". We will contact you to confirm your order."), wa));
-            K.loadProducts(true).catch(() => {}); // refresh stock
-        } catch (err) {
-            banner("Your order was NOT saved. " + err.message + " Please try again.");
-            btn.disabled = false;
-            btn.textContent = "PLACE ORDER";
-        }
+                href: "checkout.html",
+                onclick: (ev) => { // already on the checkout page: just close the cart
+                    if (/checkout\.html$/.test(location.pathname)) { ev.preventDefault();
+                        closeAll(); }
+                }
+            }, "CHECKOUT"));
     }
 
     // ---------- footer ----------
     const foot = $("footInfo");
     if (foot) {
-        const tel = C.WHATSAPP ? "+" + C.WHATSAPP : C.PHONE;
-        const info = [el("strong", {}, "Kapra Maihal")];
-        if (C.PHONE) info.push(el("a", { href: "tel:" + tel }, C.PHONE));
+        const info = [el("strong", { class: "fb" }, C.NAME)];
+        if (C.PHONE) info.push(el("a", { href: K.tel() }, C.PHONE));
         if (C.EMAIL) info.push(el("a", { href: "mailto:" + C.EMAIL }, C.EMAIL));
-        if (C.WHATSAPP) info.push(el("a", { href: "https://wa.me/" + C.WHATSAPP, target: "_blank", rel: "noopener" }, "WhatsApp"));
+        if (C.WHATSAPP) info.push(el("a", { href: K.wa(K.hello), target: "_blank", rel: "noopener" }, "WhatsApp"));
         if (C.ADDRESS) info.push(el("span", {}, C.ADDRESS));
+        info.push(el("a", { href: "policies.html" }, "Policies"));
+        info.push(el("span", { class: "fc" }, "© " + new Date().getFullYear() + " " + C.NAME));
         foot.replaceChildren(...info);
+    }
+
+    // ---------- floating WhatsApp button (every page) ----------
+    if (C.WHATSAPP) {
+        const wa = el("a", { class: "wa-float", href: K.wa(K.hello), target: "_blank", rel: "noopener", "aria-label": "Chat with us on WhatsApp" });
+        wa.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+        document.body.appendChild(wa);
     }
     K.renderBadge();
 })();

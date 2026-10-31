@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kapra Maihal — Clothing</title>
+    <title>ZARÉEN — The Art of Timeless Beauty</title>
+    <meta name="description" content="ZARÉEN — The Art of Timeless Beauty. Shop our latest clothing collection.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,7 +15,7 @@
 <body>
     <header class="top">
         <div class="wrap bar">
-            <a class="brand" href="index.html">Kapra Maihal</a>
+            <a class="brand" href="index.html" data-shop="NAME">ZARÉEN</a>
             <nav class="nav"><a class="on" href="index.html#shop">Shop</a><a class="" href="contact.html">Contact</a><button class="cart-btn" id="openCart" aria-label="Open cart">Cart <span id="cartCount">0</span></button></nav>
         </div>
     </header>
@@ -22,8 +23,8 @@
     <section class="hero">
         <div class="hero-slides" id="heroSlides"></div>
         <div class="wrap">
-            <h1>Kapra Maihal</h1>
-            <p>Shop our latest clothing collection.</p>
+            <h1 data-shop="NAME">ZARÉEN</h1>
+            <p data-shop="TAGLINE">The Art of Timeless Beauty</p>
             <a class="btn" href="#shop">Shop now</a>
         </div>
     </section>
@@ -32,15 +33,34 @@
         <div class="tools">
             <input type="search" id="search" placeholder="Search clothes…" aria-label="Search products">
             <div class="chips" id="chips"></div>
+            <div class="sortbar">
+                <label class="sr" for="sort">Sort by</label>
+                <select id="sort">
+                    <option value="featured">Sort: Featured</option>
+                    <option value="new">Newest first</option>
+                    <option value="low">Price: low to high</option>
+                    <option value="high">Price: high to low</option>
+                    <option value="az">Name: A to Z</option>
+                </select>
+                <button type="button" class="chip" id="filterBtn" aria-expanded="false" aria-controls="filters">Filters</button>
+                <span class="count" id="count" aria-live="polite"></span>
+            </div>
+            <div class="filters" id="filters" hidden>
+                <label>Lowest price <input type="number" id="pMin" inputmode="numeric" min="0" placeholder="Min"></label>
+                <label>Highest price <input type="number" id="pMax" inputmode="numeric" min="0" placeholder="Max"></label>
+                <label class="chk"><input type="checkbox" id="fSale"> On sale</label>
+                <label class="chk"><input type="checkbox" id="fStock"> In stock only</label>
+                <button type="button" class="linkbtn" id="fClear">Clear filters</button>
+            </div>
         </div>
         <p id="status" class="status">Loading products…</p>
         <div class="grid" id="grid"></div>
     </main>
     <footer>
-        <div class="wrap" id="footInfo"><strong>Kapra Maihal</strong></div>
+        <div class="wrap" id="footInfo"><strong class="fb">ZARÉEN</strong></div>
     </footer>
 
-    <!-- Cart + checkout drawer -->
+    <!-- Cart drawer -->
     <div class="overlay" id="overlay" hidden></div>
     <aside class="drawer" id="drawer" hidden aria-label="Your cart">
         <div class="d-head">
