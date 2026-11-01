@@ -68,11 +68,57 @@
     startHero();
     if (mq.addEventListener) mq.addEventListener("change", startHero);
 
-    // ----- product grid: search + category + sort + filters -----
-    let cat = "All",
+    // ----- product grid: categories first, then products, with search + sort + filters -----
+    let cat = null, // null = showing the category boxes
         query = "";
     const f = { sort: "featured", min: null, max: null, sale: false, stock: false };
     const price = K.price;
+    const shop = $("shop");
+
+    // category boxes + "back" button (created here, so index.html is not changed)
+    const catGrid = el("div", { class: "catgrid", id: "catGrid" });
+    const back = el("button", {
+        type: "button",
+        class: "linkbtn catback",
+        hidden: "hidden",
+        onclick: () => {
+            if (history.state && history.state.km) history.back();
+            else showCats();
+        }
+    }, "← All categories");
+    $("status").before(back, catGrid);
+
+    function showCats() {
+        cat = null;
+        query = "";
+        $("search").value = "";
+        renderGrid();
+    }
+
+    function openCat(c) {
+        cat = c;
+        history.pushState({ km: 1, cat: c }, "");
+        renderChips();
+        renderGrid();
+        shop.scrollIntoView({ behavior: "smooth" });
+    }
+    window.addEventListener("popstate", (e) => {
+        if (e.state && e.state.km && e.state.cat) {
+            cat = e.state.cat;
+            renderChips();
+            renderGrid();
+        } else showCats();
+    });
+
+    function renderCats() {
+        const names = [...new Set(K.products.map((p) => p.category).filter(Boolean))];
+        catGrid.replaceChildren(...names.map((c, i) => {
+            const list = K.products.filter((p) => p.category === c);
+            return el("button", { type: "button", class: "catbox", style: "--i:" + i, onclick: () => openCat(c) },
+                K.img(list[0].images[0], c, i < 4),
+                el("span", { class: "catname" }, el("strong", {}, c), el("small", {}, list.length + (list.length === 1 ? " item" : " items"))));
+        }));
+    }
 
     function renderChips(centerActive) {
         const box = $("chips");
@@ -115,6 +161,16 @@
     }
 
     function renderGrid() {
+        const inCats = cat === null;
+        shop.classList.toggle("cats-mode", inCats);
+        back.hidden = inCats;
+        catGrid.hidden = !inCats;
+        if (inCats) { // category boxes
+            renderCats();
+            $("grid").replaceChildren();
+            $("status").textContent = K.products.length ? "" : "No products yet. Please check back soon.";
+            return;
+        }
         const list = visible();
         $("grid").replaceChildren(...list.map((p, i) => K.card(p, i, i < 4)));
         const n = filterCount();
@@ -134,6 +190,10 @@
 
     $("search").addEventListener("input", (e) => {
         query = e.target.value.trim().toLowerCase();
+        if (query && cat === null) { // searching from the category boxes: search all products
+            cat = "All";
+            renderChips();
+        }
         renderGrid();
     });
     $("sort").addEventListener("change", (e) => { f.sort = e.target.value;

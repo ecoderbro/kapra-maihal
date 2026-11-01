@@ -2153,3 +2153,114 @@ footer {
         content: "Click to zoom"
     }
 }
+
+
+/* ---- home page: category boxes ---- */
+.cats-mode .chips,
+.cats-mode .sortbar,
+.cats-mode .filters {
+    display: none
+}
+
+.catback {
+    display: inline-block;
+    margin: .4rem 0 1rem;
+    font-size: 1rem;
+    text-decoration: none;
+    color: var(--mute)
+}
+
+.catback:hover {
+    color: var(--maroon)
+}
+
+.catgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.4rem;
+    padding: 1rem 0 3rem
+}
+
+.catbox {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    aspect-ratio: 3/4;
+    border-radius: var(--r);
+    overflow: hidden;
+    background: var(--line);
+    color: var(--paper);
+    text-align: left;
+    animation: fadeUp .6s var(--ease) both;
+    animation-delay: calc(min(var(--i, 0), 10)*55ms);
+    transition: transform .3s var(--ease), box-shadow .3s
+}
+
+.catbox:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 30px rgba(28, 26, 24, .18)
+}
+
+.catbox img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s var(--ease)
+}
+
+.catbox:hover img {
+    transform: scale(1.06)
+}
+
+.catname {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 2.5rem 1.2rem 1.1rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, .7), rgba(0, 0, 0, 0))
+}
+
+.catname strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase
+}
+
+.catname small {
+    font-size: .85rem;
+    opacity: .85
+}
+
+@media(hover:none) {
+    .catbox:hover {
+        transform: none;
+        box-shadow: none
+    }
+    .catbox:hover img {
+        transform: none
+    }
+}
+
+@media(max-width:760px) {
+    .catgrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: .6rem;
+        padding-bottom: 2rem
+    }
+    .catbox {
+        aspect-ratio: 1/1;
+        border-radius: 12px
+    }
+    .catname {
+        padding: 1.8rem .7rem .7rem
+    }
+    .catname strong {
+        font-size: 1.05rem
+    }
+    .catname small {
+        font-size: .75rem
+    }
+}
