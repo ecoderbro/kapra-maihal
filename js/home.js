@@ -7,58 +7,66 @@
 
     // ----- hero slideshow -----
     // Desktop shows only gallery-N.jpg photos. Phones (window 760px wide or less) show only mobile-N.jpg photos.
-    // Missing photos are skipped.
+    // FAST: the first photo shows as soon as it arrives; the other photos load one by one AFTER the page has finished loading.
     const box = $("heroSlides");
-    const exists = (src) => new Promise((done) => {
+    const wide = C.GALLERY_IMAGES || [],
+        tall = C.GALLERY_MOBILE_IMAGES || [];
+    const full = (src) => "url('" + new URL(src, document.baseURI).href + "')"; // full address, so it works from the css folder too
+    const mq = window.matchMedia("(max-width: 760px)"); // same width the CSS uses for phones
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const probe = (src) => new Promise((done) => { // downloads one photo; the browser keeps it, so showing it afterwards is instant
         if (!src) return done(null);
         const im = new Image();
         im.onload = () => done(src);
         im.onerror = () => done(null);
         im.src = src;
     });
-    const wide = C.GALLERY_IMAGES || [],
-        tall = C.GALLERY_MOBILE_IMAGES || [];
-    const full = (src) => "url('" + new URL(src, document.baseURI).href + "')"; // full address, so it works from the css folder too
-    const mq = window.matchMedia("(max-width: 760px)"); // same width the CSS uses for phones
-    const dsk = [], mob = []; // desktop slides (gallery-N.jpg) and phone slides (mobile-N.jpg), kept separate
-    const make = (src, cls, list, varName) => {
-        const div = document.createElement("div");
-        div.className = cls;
-        div.style.setProperty(varName, full(src));
-        box.appendChild(div);
-        list.push(div);
-    };
-    let idx = 0;
-    const active = () => {
-        // phones use only mobile photos, desktop only gallery photos (if a whole set is empty, use the other so the hero is never blank)
-        const l = mq.matches ? mob : dsk;
-        return l.length ? l : (mq.matches ? dsk : mob);
-    };
-    const show = () => {
-        [...dsk, ...mob].forEach((d) => d.classList.remove("on"));
-        const l = active();
-        if (l.length) l[idx % l.length].classList.add("on");
-    };
-    Promise.all([
-        Promise.all(wide.map(exists)),
-        Promise.all(tall.map(exists))
-    ]).then(([w, t]) => {
-        w.filter(Boolean).forEach((src) => make(src, "d", dsk, "--d"));
-        t.filter(Boolean).forEach((src) => make(src, "m", mob, "--m"));
-        // if one set is missing completely, reuse the other set's photos so the hero still shows something
-        if (!mob.length) w.filter(Boolean).forEach((src) => make(src, "m", mob, "--m"));
-        if (!dsk.length) t.filter(Boolean).forEach((src) => make(src, "d", dsk, "--d"));
-        if (!dsk.length && !mob.length) return;
-        show();
-        if (mq.addEventListener) mq.addEventListener("change", () => { idx = 0; show(); });
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        setInterval(() => {
-            const l = active();
-            if (l.length < 2) return;
-            idx = (idx + 1) % l.length;
-            show();
-        }, (C.SLIDE_SECONDS || 4) * 1000);
+    const afterLoad = () => new Promise((go) => {
+        const wait = () => setTimeout(go, 1200);
+        if (document.readyState === "complete") wait();
+        else window.addEventListener("load", wait, { once: true });
     });
+    let token = 0,
+        timer = null;
+
+    async function startHero() {
+        const my = ++token;
+        clearInterval(timer);
+        box.replaceChildren();
+        const kind = mq.matches ? "m" : "d"; // d = laptop photo, m = phone photo (the CSS shows the right one)
+        const slides = [];
+        let at = 0;
+        const add = (src) => {
+            const div = document.createElement("div");
+            div.className = kind;
+            div.style.setProperty(kind === "m" ? "--m" : "--d", full(src));
+            box.appendChild(div);
+            slides.push(div);
+            if (slides.length === 1) div.classList.add("on");
+        };
+        if (!still) timer = setInterval(() => {
+            if (slides.length < 2) return;
+            slides[at].classList.remove("on");
+            at = (at + 1) % slides.length;
+            slides[at].classList.add("on");
+        }, (C.SLIDE_SECONDS || 4) * 1000);
+        const run = async(list) => { // add every photo that exists, in order
+            for (const src of list) {
+                if (my !== token) return;
+                const ok = await probe(src);
+                if (my !== token) return;
+                if (ok) {
+                    const first = !slides.length;
+                    add(ok);
+                    if (first) await afterLoad(); // the rest wait until the page is ready
+                }
+            }
+        };
+        await run(mq.matches ? tall : wide);
+        if (my === token && !slides.length) await run(mq.matches ? wide : tall); // none of this device's photos exist: use the other set
+    }
+    startHero();
+    if (mq.addEventListener) mq.addEventListener("change", startHero);
 
     // ----- product grid: search + category + sort + filters -----
     let cat = "All",
@@ -108,7 +116,7 @@
 
     function renderGrid() {
         const list = visible();
-        $("grid").replaceChildren(...list.map((p, i) => K.card(p, i)));
+        $("grid").replaceChildren(...list.map((p, i) => K.card(p, i, i < 4)));
         const n = filterCount();
         $("filterBtn").textContent = n ? "Filters (" + n + ")" : "Filters";
         $("filterBtn").classList.toggle("on", n > 0);

@@ -40,14 +40,14 @@
 
         function pick(i) {
             cur = i;
-            main.replaceChildren(img(photos[i], p.name));
+            main.replaceChildren(img(photos[i], p.name, true));
             thumbs.querySelectorAll("button").forEach((b, n) => b.classList.toggle("on", n === i));
         }
 
         function setPhotos(list) {
             photos = list;
             cur = 0;
-            main.replaceChildren(img(list[0], p.name));
+            main.replaceChildren(img(list[0], p.name, true));
             thumbs.replaceChildren(...(list.length > 1 ? list.map((src, i) =>
                 el("button", { type: "button", class: i ? "" : "on", "aria-label": "Photo " + (i + 1), onclick: () => pick(i) }, img(src, ""))) : []));
         }

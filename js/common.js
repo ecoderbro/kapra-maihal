@@ -22,10 +22,13 @@
     const el = K.el,
         money = K.money,
         price = K.price;
-    K.img = (src, alt) => el("img", {
+    // eager = true for photos the visitor sees first (they load straight away); all other photos wait until scrolled near
+    K.img = (src, alt, eager) => el("img", {
         src: src || "",
         alt: alt || "",
-        loading: "lazy",
+        loading: eager ? "eager" : "lazy",
+        fetchpriority: eager ? "high" : null,
+        decoding: "async",
         onerror: (ev) => { ev.target.style.visibility = "hidden"; }
     });
 
@@ -79,7 +82,7 @@
         return null;
     };
     const writeCache = () => {
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ products: K.products, settings: K.settings })); } catch (e) {}
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ products: K.products, settings: K.settings, t: Date.now() })); } catch (e) {}
     };
     async function fetchFresh() {
         if (!C.APPS_SCRIPT_URL) throw new Error("Shop not connected yet. Add your Apps Script URL in js/config.js.");
@@ -105,7 +108,9 @@
             K.settings = cached.settings || K.settings;
             loading = Promise.resolve(K.products);
             const before = JSON.stringify(K.products);
-            fetchFresh().then(() => { if (JSON.stringify(K.products) !== before && K.onFresh) K.onFresh(); }).catch(() => {});
+            // saved less than a minute ago (you just moved between pages): no need to ask the server again
+            if (!(cached.t && Date.now() - cached.t < 60000))
+                fetchFresh().then(() => { if (JSON.stringify(K.products) !== before && K.onFresh) K.onFresh(); }).catch(() => {});
             return loading;
         }
         loading = fetchFresh();
@@ -114,8 +119,8 @@
     };
 
     // ---------- product card (links to product.html) ----------
-    K.card = (p, i) => el("a", { class: "card", href: "product.html?id=" + encodeURIComponent(p.id), style: "--i:" + (i || 0) },
-        el("div", { class: "ph" }, K.img(p.images[0], p.name), p.stock <= 0 ? el("span", { class: "tag" }, "Sold out") : null),
+    K.card = (p, i, eager) => el("a", { class: "card", href: "product.html?id=" + encodeURIComponent(p.id), style: "--i:" + (i || 0) },
+        el("div", { class: "ph" }, K.img(p.images[0], p.name, eager), p.stock <= 0 ? el("span", { class: "tag" }, "Sold out") : null),
         el("div", { class: "info" }, el("h3", {}, p.name),
             el("div", { class: "price" }, money(price(p)), p.salePrice > 0 ? el("s", {}, money(p.price)) : null)));
 
