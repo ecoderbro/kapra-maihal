@@ -22,15 +22,29 @@
     const el = K.el,
         money = K.money,
         price = K.price;
+    // small copy of a photo: images/kurta.jpg -> images/thumbs/kurta.jpg (web links are left alone)
+    K.thumb = (src) => {
+        if (!C.THUMBS || !src || /^(https?:)?\/\//.test(src)) return src;
+        const i = src.lastIndexOf("/");
+        return src.slice(0, i + 1) + C.THUMBS + "/" + src.slice(i + 1);
+    };
     // eager = true for photos the visitor sees first (they load straight away); all other photos wait until scrolled near
-    K.img = (src, alt, eager) => el("img", {
-        src: src || "",
-        alt: alt || "",
-        loading: eager ? "eager" : "lazy",
-        fetchpriority: eager ? "high" : null,
-        decoding: "async",
-        onerror: (ev) => { ev.target.style.visibility = "hidden"; }
-    });
+    // small = true for little pictures (shop grid, cart): the small copy loads, and the full photo is the backup
+    K.img = (src, alt, eager, small) => {
+        const first = small ? K.thumb(src) : src;
+        return el("img", {
+            src: first || "",
+            alt: alt || "",
+            loading: eager ? "eager" : "lazy",
+            fetchpriority: eager ? "high" : null,
+            decoding: "async",
+            onerror: (ev) => {
+                const im = ev.target;
+                if (first !== src && !im.dataset.fb) { im.dataset.fb = "1";
+                    im.src = src || ""; } else im.style.visibility = "hidden";
+            }
+        });
+    };
 
     // ---------- contact links (all built from js/config.js, so you change a number in ONE place) ----------
     const digits = (s) => String(s || "").replace(/\D/g, "");
@@ -84,10 +98,21 @@
     const writeCache = () => {
         try { localStorage.setItem(CACHE_KEY, JSON.stringify({ products: K.products, settings: K.settings, t: Date.now() })); } catch (e) {}
     };
+    async function getJson(url, ms) { // download JSON, giving up after ms milliseconds
+        const stop = new AbortController();
+        const timer = setTimeout(() => stop.abort(), ms);
+        try { return await (await fetch(url, { signal: stop.signal })).json(); } finally { clearTimeout(timer); }
+    }
     async function fetchFresh() {
         if (!C.APPS_SCRIPT_URL) throw new Error("Shop not connected yet. Add your Apps Script URL in js/config.js.");
-        let out;
-        try { out = await (await fetch(C.APPS_SCRIPT_URL + "?action=products")).json(); } catch (e) { throw new Error("Could not load products. Please refresh the page."); }
+        let out = null;
+        if (C.PRODUCTS_API) { // 1) the fast route (a copy kept ready by Vercel)
+            try { out = await getJson(C.PRODUCTS_API, 12000); } catch (e) { out = null; }
+            if (!out || !out.ok || !Array.isArray(out.products)) out = null;
+        }
+        if (!out) { // 2) ask Google directly
+            try { out = await getJson(C.APPS_SCRIPT_URL + "?action=products", 45000); } catch (e) { throw new Error("Could not load products. Please refresh the page."); }
+        }
         if (!out.ok) throw new Error("Could not load products. Please refresh the page.");
         K.products = out.products;
         K.settings = out.settings || K.settings;
@@ -120,7 +145,7 @@
 
     // ---------- product card (links to product.html) ----------
     K.card = (p, i, eager) => el("a", { class: "card", href: "product.html?id=" + encodeURIComponent(p.id), style: "--i:" + (i || 0) },
-        el("div", { class: "ph" }, K.img(p.images[0], p.name, eager), p.stock <= 0 ? el("span", { class: "tag" }, "Sold out") : null),
+        el("div", { class: "ph" }, K.img(p.images[0], p.name, eager, true), p.stock <= 0 ? el("span", { class: "tag" }, "Sold out") : null),
         el("div", { class: "info" }, el("h3", {}, p.name),
             el("div", { class: "price" }, money(price(p)), p.salePrice > 0 ? el("s", {}, money(p.price)) : null)));
 
@@ -304,7 +329,7 @@
                 l.qty = Math.min(C.MAX_QTY, Math.max(1, l.qty + d));
                 changed();
             };
-            return el("div", { class: "line" }, K.img(K.photosFor(p, l.colour)[0], p.name),
+            return el("div", { class: "line" }, K.img(K.photosFor(p, l.colour)[0], p.name, false, true),
                 el("div", {}, el("strong", {}, p.name), el("small", {}, [l.size, l.colour].filter(Boolean).join(" · ")),
                     el("div", { class: "qty" }, el("button", { onclick: () => change(-1) }, "−"), el("span", {}, String(l.qty)), el("button", { onclick: () => change(1) }, "+")),
                     el("button", {

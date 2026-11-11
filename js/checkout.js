@@ -57,7 +57,7 @@
         const t = K.totals();
         const items = lines.map((l) => {
             const p = K.find(l.id);
-            return el("div", { class: "cs-line" }, K.img(K.photosFor(p, l.colour)[0], p.name),
+            return el("div", { class: "cs-line" }, K.img(K.photosFor(p, l.colour)[0], p.name, false, true),
                 el("div", {}, el("strong", {}, p.name), el("small", {}, [l.size, l.colour].filter(Boolean).join(" · ") + (l.size || l.colour ? " · " : "") + "Qty " + l.qty)),
                 el("div", { class: "price" }, money(price(p) * l.qty)));
         });

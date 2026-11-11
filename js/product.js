@@ -49,7 +49,7 @@
             cur = 0;
             main.replaceChildren(img(list[0], p.name, true));
             thumbs.replaceChildren(...(list.length > 1 ? list.map((src, i) =>
-                el("button", { type: "button", class: i ? "" : "on", "aria-label": "Photo " + (i + 1), onclick: () => pick(i) }, img(src, ""))) : []));
+                el("button", { type: "button", class: i ? "" : "on", "aria-label": "Photo " + (i + 1), onclick: () => pick(i) }, img(src, "", false, true))) : []));
         }
         setPhotos(K.photosFor(p, sel.colour)); // single-colour products show that colour's photos straight away
 

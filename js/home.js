@@ -115,7 +115,7 @@
         catGrid.replaceChildren(...names.map((c, i) => {
             const list = K.products.filter((p) => p.category === c);
             return el("button", { type: "button", class: "catbox", style: "--i:" + i, onclick: () => openCat(c) },
-                K.img(list[0].images[0], c, i < 4),
+                K.img(list[0].images[0], c, i < 4, true),
                 el("span", { class: "catname" }, el("strong", {}, c), el("small", {}, list.length + (list.length === 1 ? " item" : " items"))));
         }));
     }

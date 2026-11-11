@@ -7,8 +7,13 @@ How to use (in the VS Code terminal, inside your website folder):
     python3 optimize_images.py images gallery
 
 It creates new folders  images-fast  and  gallery-fast  with the same file names.
-Check a few photos, then copy the files from the "-fast" folders over the ones in
-images/ and gallery/ (same names, so nothing in your Google Sheet changes).
+For the images folder it ALSO makes small copies in  images-fast/thumbs  (used by the
+shop grid, so the page opens much faster).
+Check a few photos, then copy everything from the "-fast" folders over the ones in
+images/ and gallery/:
+    cp -r images-fast/. images/
+    cp -r gallery-fast/. gallery/
+(same names, so nothing in your Google Sheet changes).
 
 Sizes used:  product photos   max 1000 px wide
              gallery-N.jpg    max 1920 px wide   (laptop banner)
@@ -31,6 +36,20 @@ def max_width(name):
     if n.startswith("gallery-"):
         return 1920
     return 1000
+
+
+THUMB_W = 500
+THUMB_QUALITY = 78
+
+
+def make_thumb(src, dst):
+    im = ImageOps.exif_transpose(Image.open(src))
+    if im.width > THUMB_W:
+        im = im.resize((THUMB_W, round(im.height * THUMB_W / im.width)), Image.LANCZOS)
+    if im.mode != "RGB":
+        im = im.convert("RGB")
+    # small copies are always JPEG data, saved under the SAME file name the site expects
+    im.save(dst, "JPEG", quality=THUMB_QUALITY, optimize=True, progressive=True)
 
 
 def fmt(b):
@@ -63,6 +82,9 @@ def main(folders):
             continue
         out = folder.rstrip("/\\") + "-fast"
         os.makedirs(out, exist_ok=True)
+        is_gallery = os.path.basename(os.path.abspath(folder)).lower() == "gallery"
+        if not is_gallery:
+            os.makedirs(os.path.join(out, "thumbs"), exist_ok=True)
         for name in sorted(os.listdir(folder)):
             if not name.lower().endswith(EXTS):
                 continue
@@ -73,6 +95,11 @@ def main(folders):
                 print("  skipped", name, "-", e)
                 continue
             b, a = os.path.getsize(src), os.path.getsize(dst)
+            if not is_gallery:
+                try:
+                    make_thumb(src, os.path.join(out, "thumbs", name))
+                except Exception as e:
+                    print("  no small copy for", name, "-", e)
             before += b
             after += a
             count += 1
@@ -81,7 +108,9 @@ def main(folders):
                 print("    tip: this is a PNG photo. Save it as .jpg for a much smaller file (then use the .jpg name in your sheet).")
     if count:
         print("\nDone: %d photos, %s -> %s (%.0f%% smaller)" % (count, fmt(before), fmt(after), 100 - 100 * after / max(before, 1)))
-        print("Now copy the files from the *-fast folders over your originals.")
+        print("Now copy them over your originals:")
+        print("    cp -r images-fast/. images/")
+        print("    cp -r gallery-fast/. gallery/")
     else:
         print("No photos found.")
 

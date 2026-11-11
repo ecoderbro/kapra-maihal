@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/products.js": { "maxDuration": 30 }
+  },
   "headers": [
     {
       "source": "/images/(.*)",

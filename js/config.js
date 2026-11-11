@@ -4,6 +4,12 @@ window.SHOP = {
     NAME: "ZARÉEN",
     TAGLINE: "The Art of Timeless Beauty",
     APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyeRqNoWhEBamKNcfJpswHeILkvJwsfU7-lMqEKAxLM3UKktpG2yUEi6KsqRQPEWblb/exec", // paste your Apps Script Web app URL (ends in /exec) between the quotes
+    // FAST route for the product list (Vercel keeps a copy ready, see api/products.js). If it is not available
+    // (for example when testing on your own computer) the shop automatically asks Google directly instead.
+    PRODUCTS_API: "/api/products",
+    // Small copies of product photos for the shop grid. optimize_images.py creates them in images/thumbs/.
+    // If a small copy is missing, the full photo is used. Set to "" to turn this off.
+    THUMBS: "thumbs",
     CURRENCY: "PKR",
     MAX_QTY: 10, // most pieces of one item per order
 

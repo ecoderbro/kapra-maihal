@@ -1,0 +1,4 @@
+python3 optimize_images.py images gallery
+cp -r images-fast/. images/
+cp -r gallery-fast/. gallery/
+rm -r images-fast gallery-fast
